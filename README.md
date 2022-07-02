@@ -19,10 +19,8 @@ You will need to install [ESXI](https://www.vmware.com//support/pubs/) on a bare
 
 You will need a **Firewall appliance** with IPfire installed and setup, a tutorial can be found [here](https://wiki.ipfire.org/installation).
 
-With IPfire configured, you should enable [geoblocking](https://wiki.ipfire.org/configuration/firewall/geoip-block) to prevent countries you don't want from connecting to you, and to ensure the ESXI host gets a static IP on the GREEN network.
-
 ### Adressing presumptions
-We will presume that the IP address you receive from your internet service provider is STATIC, there are [Dynamic DNS](https://www.makeuseof.com/tag/5-best-dynamic-dns-providers-can-lookup-free-today/) services available but we won't be adressing DDNS in our inital commit.
+We will presume that the IP address you receive from your internet service provider is STATIC, there are [Dynamic DNS](https://www.makeuseof.com/tag/5-best-dynamic-dns-providers-can-lookup-free-today/) services available but we won't be addressing DDNS in our inital commit.
 
 Red Network External Static IP = 64.xxx.xxx.666
 
@@ -32,7 +30,7 @@ Red Network External Static IP = 64.xxx.xxx.666
   - Orange Gateway = 192.168.22.1 (if being deployed)
   - MANAGEMENT NETWORK = 192.168.88.111
 
-The above [scheme](https://www.thefreedictionary.com/Scheme) can be built however suits you needs but this is what we will refrence in this document.
+The above [scheme](https://www.thefreedictionary.com/Scheme) can be built however suits you needs but this is what we will reference in this document.
 
 ![Topology](https://user-images.githubusercontent.com/94795740/176284647-6f5bf09d-f837-4e46-9b8a-f7795a1003ad.jpg)
 
@@ -40,9 +38,8 @@ The above [scheme](https://www.thefreedictionary.com/Scheme) can be built howeve
 
 We can begin by:
 1. Connecting the physical network cables.
-2. Rename Management Network Port Group to GREEN.
-3. Rename VM Network Port Group to BLUE.
-4. Create a Virtual Machine.
+2. Create a new vSwitch and port group for that switch (BLUE).
+3. Create a Virtual Machine.
 
 Be sure to write down IP/Mac addresses while setting up, and to store relevant address values in IPfire under **Firewall > FirewallGroups > Hosts > Add new host**. It is important to have a naming system to identify each device and/or connection on the network, ensure **Remarks** are clear in case you refine the naming process later. If a device on the BLUE network does not have it's address listed under **Firewall > Blue Access**, it will not be granted internet/RED access by default.
 
@@ -50,7 +47,6 @@ Be sure to write down IP/Mac addresses while setting up, and to store relevant a
 ## Part 2
 ---
 ---
-
 
 ### Step 1
 ![=ethernet_port_cable](https://user-images.githubusercontent.com/94795740/176059892-c97c4e68-f361-4906-baf3-5caaf69cdcbf.jpg)
@@ -60,13 +56,17 @@ Only connect **one** ESXI Host NIC for now, until the installation and setup are
 ### Step 2
 ![Log In ESXI](https://user-images.githubusercontent.com/94795740/176949270-b9f05359-d7db-4882-b07a-7f0c4f00b5c0.PNG)
 
-After ESXI's installation, connect to the MANAGEMENT NETWORK from a diffrent GREEN Network host using the ESXI WUI pointing at the **192.168.88.111** IP, then **Log In as root**. 
+After ESXI's installation, connect to the MANAGEMENT NETWORK from a different GREEN Network host using the ESXI WUI pointing at the **192.168.88.111** IP, then **Log In as root**. 
 
 ### Step 3
+![New vswitch](https://user-images.githubusercontent.com/94795740/177017242-10b8207d-a27b-4bc5-8576-5d3053511234.PNG)
 
-![VM setup](https://user-images.githubusercontent.com/94795740/176275392-f0972c65-0d9c-439c-af4c-fda3df32d19b.PNG)
+Create a new vSwitch, we can make our second ethernet connection to the ESXI host from the BLUE network on the firewall machine. The default switch will be vSwitch0, we got to **Networking > Virtual switches > Add standard virtual switch** and ensure the uplink to this switch is physically connected to BLUE.
 
-In the ESXI WUI at **192.168.88.111**, click on **Virtual Machines** then **Create/Register VM**, then **Create a new virtual machine**, then provide the **name** for your server, we will call ours SME, the Guest OS **family** is **Linux** and the **version** is **CentOS 7 (64-bit)**. Choose the **Datastore** for your VM. This is how we configured our VM. Ensure that the SME Server 10 ISO is selected frome the **Datastore ISO** file.
+### Step 4
+![VM setup](https://user-images.githubusercontent.com/94795740/177018295-8e1a186a-317a-49cc-bdd3-40765526a579.PNG)
+
+In the ESXI WUI at **192.168.88.111**, click on **Virtual Machines** then **Create/Register VM**, then **Create a new virtual machine**, then provide the **name** for your server, we will call ours SME, the Guest OS **family** is **Linux** and the **version** is **CentOS 7 (64-bit)**. Choose the **Datastore** for your VM. This is how we configured our VM. Ensure that the SME Server 10 ISO is selected frome the **Datastore ISO** file and that the **Network Adapters** are connected to the **Proper Port Groups**.
 
 Note: To reboot your ESXI Host, first manually shut down each VM, then under the **Host** go to **Settings** and click on **Enter maintenance mode** then **Reboot**, upon rebooting **Exit maintenance mode**. 
 
@@ -120,9 +120,13 @@ There a a few records you will need to add or update with the register that hous
 
 ### IPFire Configuration
 
-We presume you can access the internet from within the GREEN and BLUE networks. First we log into the Firewall's WUI to create some Hosts and some Groups to make creating and modifying rules easier. Go to **Firewall > Firewall Groups > Hosts**, we will add a new host by naming it SME BLUE, the IP address is **192.168.44.2**.
+First we log into the Firewall's WUI, you should enable [geoblocking](https://wiki.ipfire.org/configuration/firewall/geoip-block) to prevent countries you don't want from connecting to you. Go to **Firewall > Location Block** make the slections you wish and **save** but do not reboot the firewall yet.
 
- **Firewall > Firewall Groups** and create a new Group called **Mail** and enable **SMTP & SSMTP**. Then go to **Firewall > Firewall Rules > New Rule** and create a Source NAT rule like the one we had already below.
+Then go to **Firewall > BlueAccess**, here you can give permission for certian MAC addresses to have a connection to the internet, any MACs that are on the blue network that facilitate the connection to the internet need to be enabled, or you can enable all by putting **192.168.44.0/24 in **source IP** and leacing **Source MAc Address** blank, use a remark to label this rule.
+
+to create some Hosts and some Groups to make creating and modifying rules easier. Go to **Firewall > Firewall Groups > Hosts**, we will add a new host by naming it SME BLUE, the IP address is **192.168.44.2**.
+
+Then proceed to **Firewall > Firewall Groups** and create a new Group called **Mail** and enable **SMTP & SSMTP**. Then go to **Firewall > Firewall Rules > New Rule** and create a Source NAT rule like the one below.
 
 ![Source Nat Rule](https://user-images.githubusercontent.com/94795740/177002936-da198d01-a4aa-48d0-9205-c84c6aa7ae9c.PNG)
 
@@ -130,9 +134,7 @@ Repeat the above process, call this group **Standard Services** and enable HTTP,
 
 ![Destination Nat Rule](https://user-images.githubusercontent.com/94795740/177003396-8d9ca31f-3568-4b53-b1e4-a724f378cc25.PNG)
 
-
-Enable internet access for any mac address connected to the BLUE network if you did not do so at the end of Part 1.
-
+Enable internet access for any MAC address connected to the BLUE network if you did not do so at the end of Part 1.
 
 
 ### Send Test Email
