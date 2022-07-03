@@ -123,10 +123,11 @@ First we log into the Firewall's WUI, you should enable [geoblocking](https://wi
 
 Then go to **Firewall > BlueAccess**, here you can give permission for certian MAC addresses to have a connection to the internet, any MACs that are on the blue network that facilitate the connection to the internet need to be enabled, or you can enable all by putting **192.168.44.0/24** in **source IP** and leaving **Source MAC Address** blank, as a remark we enter **Open Access BLUE**, do not leave this enabled unless you want open acces on the BLUE network.
 
-We can create some Hosts and some Groups to make creating and modifying rules easier. Go to **Firewall > Firewall Groups > Hosts**, we will add a new host by naming it SME BLUE, the IP address is **192.168.44.2**.
+We can create some Hosts and some Groups to make creating and modifying rules easier. Go to **Firewall > Firewall Groups > Hosts**, we will add a new host by naming it **SME BLUE**, the IP address is **192.168.44.2**.
 
 Now we can create a Destination Network Address Translation "hole" in the fire wall that directs requests for services to the listening server. IT IS EXTREMLEY IMPORTANT TO MAKE THESE RULES CAREFULLY AS THEY EXPOSE PARTS OF YOUR NETWORK TO AN ABSENCE OF FIREWALL PROTECTION. Don't do something careless like create a rule that compromises the GREEN network, EVER. This Firewall Rule says the DATA flows from a **Source** "RED", is then **Translated** from RED **64.xxx.xxx.666** to BLUE **192.168.44.2**. We will then leave the **Protocol** set to **All** and Remark "SME OPEN ACCESS", **Log** the activity that's being permitted to pass between the Firewall and the SME Server/**Gateway**. If you are not using the SME Server in Server/**Gateway** mode then a rule like this leaves your server without a Firewall/**Gateway**.
-![Destination Nat Rule](https://user-images.githubusercontent.com/94795740/177020788-f93c3cbe-f79c-4147-b0bc-f3f4d67e8d0d.PNG)
+
+![Destination Nat Rule](https://user-images.githubusercontent.com/94795740/177021742-b59dd78e-c848-416e-b5f7-6bd0f6e53b10.PNG)
 
 ### Reboot IPfire
 
