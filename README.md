@@ -112,7 +112,6 @@ There a a few records you will need to add or update with the register that hous
 |CNAME|pop|mail.mydomain.com|30min|
 |CNAME|smtp|mail.mydomain.com|30min|
  
-
 ---
 ## Part 4
 ---
@@ -122,21 +121,15 @@ There a a few records you will need to add or update with the register that hous
 
 First we log into the Firewall's WUI, you should enable [geoblocking](https://wiki.ipfire.org/configuration/firewall/geoip-block) to prevent countries you don't want from connecting to you. Go to **Firewall > Location Block** make the slections you wish and **save** but do not reboot the firewall yet.
 
-Then go to **Firewall > BlueAccess**, here you can give permission for certian MAC addresses to have a connection to the internet, any MACs that are on the blue network that facilitate the connection to the internet need to be enabled, or you can enable all by putting **192.168.44.0/24 in **source IP** and leacing **Source MAc Address** blank, use a remark to label this rule.
+Then go to **Firewall > BlueAccess**, here you can give permission for certian MAC addresses to have a connection to the internet, any MACs that are on the blue network that facilitate the connection to the internet need to be enabled, or you can enable all by putting **192.168.44.0/24** in **source IP** and leaving **Source MAC Address** blank, as a remark we enter **Open Access BLUE**, do not leave this enabled unless you want open acces on the BLUE network.
 
-to create some Hosts and some Groups to make creating and modifying rules easier. Go to **Firewall > Firewall Groups > Hosts**, we will add a new host by naming it SME BLUE, the IP address is **192.168.44.2**.
+We can create some Hosts and some Groups to make creating and modifying rules easier. Go to **Firewall > Firewall Groups > Hosts**, we will add a new host by naming it SME BLUE, the IP address is **192.168.44.2**.
 
-Then proceed to **Firewall > Firewall Groups** and create a new Group called **Mail** and enable **SMTP & SSMTP**. Then go to **Firewall > Firewall Rules > New Rule** and create a Source NAT rule like the one below.
+Now we can create a Destination Network Address Translation "hole" in the fire wall that directs requests for services to the listening server. IT IS EXTREMLEY IMPORTANT TO MAKE THESE RULES CAREFULLY AS THEY EXPOSE PARTS OF YOUR NETWORK TO AN ABSENCE OF FIREWALL PROTECTION. Don't do something careless like create a rule that compromises the GREEN network, EVER. This Firewall Rule says the DATA flows from a **Source** "RED", is then **Translated** from RED **64.xxx.xxx.666** to BLUE **192.168.44.2**. We will then leave the **Protocol** set to **All** and Remark "SME OPEN ACCESS", **Log** the activity that's being permitted to pass between the Firewall and the SME Server/**Gateway**. If you are not using the SME Server in Server/**Gateway** mode then a rule like this leaves your server without a Firewall/**Gateway**.
+![Destination Nat Rule](https://user-images.githubusercontent.com/94795740/177020788-f93c3cbe-f79c-4147-b0bc-f3f4d67e8d0d.PNG)
 
-![Source Nat Rule](https://user-images.githubusercontent.com/94795740/177002936-da198d01-a4aa-48d0-9205-c84c6aa7ae9c.PNG)
+### Reboot IPfire
 
-Repeat the above process, call this group **Standard Services** and enable HTTP, HTTPS, IMAP, IMAPS, POP3, POP3S. When creating the **Firewall Rule** we are making a destination NAT rule like this.
-
-![Destination Nat Rule](https://user-images.githubusercontent.com/94795740/177003396-8d9ca31f-3568-4b53-b1e4-a724f378cc25.PNG)
-
-Enable internet access for any MAC address connected to the BLUE network if you did not do so at the end of Part 1.
-
-
-### Send Test Email
+### Send A Test Email
 
 See if it works!
