@@ -105,7 +105,7 @@ Go to **E-mail**, then **Change e-mail access settings**, then **Allow private a
 There a a few records you will need to add or update with the register that houses your **Domain name**, we will set the MX record to (Priority 0) The entries are as follows
 |Type|Name|Data|TTL|
 |----|----|----|---|
-|MX|@|mail.mydomain.com|30min| (Priority 0)
+|MX|mail|mail.mydomain.com|30min| (Priority 0)
 |A|mail |64.xxx.xxx.666|30min|
 |TXT|@| v=spf1 a:mail.mydomain.com -all|30min|
 |CNAME|imap|mail.mydomain.com|30min|
